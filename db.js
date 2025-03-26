@@ -4,6 +4,20 @@ const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
 var request = require('request');
 const NodeCache = require('node-cache');
+const Mollitia = require('mollitia');
+const httpRequest = require('request')
+const { Circuit, Fallback, SlidingCountBreaker, BreakerState } = Mollitia
+const config = {
+  name: 'makeCounter',
+  slidingWindowSize: 6, 
+  minimumNumberOfCalls: 3, 
+  failureRateThreshold: 60, 
+  slowCallDurationThreshold: 500, 
+  slowCallRateThreshold: 50, 
+  permittedNumberOfCallsInHalfOpenState: 2, 
+  openStateDelay: 10000,
+  halfOpenStateMaxDelay: 30000,
+}
 const myCache = new NodeCache({
     stdTTL: 600
 });
