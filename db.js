@@ -30,6 +30,58 @@ let transporter = nodemailer.createTransport({
     }
 });
 
+const slidingCountBreaker = new SlidingCountBreaker(config)
+  
+
+ const fallback = new Fallback({
+  callback(err) {
+    
+    if (err) {
+      return err.message
+    }
+  },
+})
+  
+
+const makeCircuit = new Circuit({
+  name: 'Make Operations',
+  options: {
+    prometheus: {
+      name: 'makeCircuit',
+    },
+    modules: [slidingCountBreaker, fallback],
+  },
+})
+
+
+const makeController = {
+  getMakes: (makeid) => {
+    return new Promise((resolve, reject) => {
+      httpRequest(
+        {
+          uri: `http://localhost:9191/makes`,
+          method: 'GET',
+          agentOptions: {
+            rejectUnauthorized: false, 
+          },
+        },
+        (error, response, body) => {
+          if (error) {
+              console.log(error)
+            reject(error)
+          } else if (response) {
+            if (response.statusCode === 200) {
+              resolve(JSON.parse(body))
+            } else {
+              resolve(response.body)
+            }
+          }
+        }
+      )
+    })
+  },
+}
+
 
 async function upload(req, res, filetype) {    
     filetype = (filetype == undefined || line == "undefined") ? "type1" : filetype
@@ -52,7 +104,7 @@ async function upload(req, res, filetype) {
                 insertarr[i] = new Array(4);
             }
             let s = 0;
-            const table = new sql.Table('[FortinSimCard].[dbo].[serials]');
+            const table = new sql.Table('[Table].[dbo].[serials]');
             table.create = false;
             table.columns.add('name', sql.VarChar(255), {
                 nullable: true
